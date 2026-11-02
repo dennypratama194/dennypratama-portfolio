@@ -1,0 +1,421 @@
+
+@counter-style pad3{system:extends decimal;pad:3 "0"}
+@property --p{syntax:"<number>";inherits:true;initial-value:0}
+@property --deg{syntax:"<integer>";inherits:true;initial-value:0}
+@property --ld{syntax:"<integer>";inherits:false;initial-value:180}
+@property --sa{syntax:"<number>";inherits:true;initial-value:.5}
+/* not inherited: set on each row, so a scroll-speed change restyles five links, not the whole work list */
+@property --skew{syntax:"<number>";inherits:false;initial-value:0}
+
+/* counters: big numerals share one rule so they always sit at line-height 1 */
+.num{font-weight:200;line-height:1;letter-spacing:-.05em;font-stretch:108%;font-variant-numeric:tabular-nums}
+
+/* loader: the d turns 180 degrees into p, then the halves part */
+.ld{display:none}
+.has-intro .ld{display:block;position:fixed;inset:0;z-index:300;pointer-events:none}
+.ld-bg{position:absolute;inset:0;background:var(--ink)}
+.ld-in{position:relative;height:min(100vh,900px)}
+.ld-mk{position:absolute;left:50%;top:50%;height:46%;width:auto;aspect-ratio:692/1024;transform:translate(-50%,-50%);overflow:visible}
+.ld-gh path{fill:none;stroke:var(--bone);stroke-width:4;opacity:0}
+.ld-b,.ld-m{fill:var(--bone);fill-opacity:0;stroke:var(--bone);stroke-width:4}
+.ld-m{rotate:180deg}
+.ld-deg{position:absolute;left:var(--pad);bottom:24px;font-size:var(--fs-d1);color:var(--bone)}
+.ld-num{--ld:180;counter-reset:ld var(--ld)}
+.ld-num::before{content:counter(ld,pad3)}
+.ld-c{position:absolute;color:var(--bone-2)}
+.ld-tl{left:var(--pad);top:32px}
+.ld-tr{right:var(--pad);top:32px;text-align:right}
+.ld-br{right:var(--pad);bottom:32px;text-align:right}
+
+/* hero + dive */
+.hero-wrap{position:relative}
+.hero{position:relative;height:900px;overflow:hidden;container-type:size;background:var(--ink)}
+.gl{position:absolute;inset:0;z-index:1;width:100%;height:100%;display:block}
+.gl-still{position:absolute;inset:0;z-index:0;width:100%;height:100%}
+.gl-still img{object-fit:cover}
+.gl{opacity:0;transition:opacity .6s var(--e-out)}
+.gl-on .gl{opacity:1}
+.gl-fail .gl{display:none}
+.hu{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:calc(1 - clamp(0, (var(--p) - .015) * 14, 1))}
+.hu a{pointer-events:auto}
+.hu-top{position:absolute;left:var(--pad);right:var(--pad);top:104px;display:flex;justify-content:space-between;gap:24px;color:var(--bone-2)}
+.hu-top p:last-child{text-align:right}
+.hu-d{position:absolute;left:var(--pad);top:28%;display:flex;flex-direction:column;gap:16px}
+.hu-p{position:absolute;right:var(--pad);top:56%;display:flex;flex-direction:column;align-items:flex-end;gap:16px;text-align:right}
+.hl{display:block;font-weight:300;font-size:var(--fs-d3);line-height:var(--lh-d3);letter-spacing:-.05em;white-space:nowrap}
+.hl-d,.hl-p{color:var(--bone);font-stretch:118%;font-weight:200}
+.hu-bl{position:absolute;left:var(--pad);bottom:32px;max-width:400px;display:flex;flex-direction:column;gap:12px}
+.hu-bl .lead{color:var(--bone-2)}
+.hu-br{position:absolute;right:var(--pad);bottom:32px}
+.hud{position:absolute;left:50%;bottom:24px;z-index:4;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.hud-deg{font-size:var(--fs-h1);color:var(--red)}
+.hud-num{counter-reset:dg var(--deg)}
+.hud-num::before{content:counter(dg,pad3)}
+.hud-lbl{position:relative;height:20px;width:336px;text-align:center;color:var(--bone-2)}
+.hud-lbl span{position:absolute;left:0;right:0;top:0}
+.hud-ph{opacity:0}
+.chs{position:absolute;inset:0;z-index:3;pointer-events:none;color:var(--bone);mix-blend-mode:difference;display:none}
+/* a soft ink pool behind the chapter copy, so the lines read even where they cross the marks */
+.chs-scrim{position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse 52% 60% at 18% 50%,rgba(12,12,11,.6),rgba(12,12,11,0) 72%);opacity:0;display:none}
+.chp{position:absolute;left:var(--pad);top:50%;max-width:8.4em;font-weight:300;font-size:var(--fs-d4);line-height:var(--lh-d4);letter-spacing:-.045em;opacity:0}
+.chp .mono{display:block;margin-bottom:24px}
+.flash{position:absolute;inset:0;z-index:6;background:var(--bone);opacity:0;pointer-events:none}
+
+/* the dive, unrolled for the static canvas */
+.story{display:block}
+.sf{position:relative;height:900px;overflow:hidden;background:var(--ink);border-top:1px solid #000}
+.sf>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* where the browser can tie an animation to scroll, each still pushes in as it passes, so the fallback still moves; compositor-only. The frame names the timeline: its overflow:hidden would make it the img's own scroller */
+@keyframes sf-push{from{transform:scale(1.22) rotate(-2deg)}to{transform:scale(1) rotate(0deg)}}
+@media (prefers-reduced-motion:no-preference){@supports (animation-timeline:view()){
+.sf{view-timeline:--sf block}
+.sf>img{animation:sf-push linear both;animation-timeline:--sf;will-change:transform}
+}}
+.sf-t{position:absolute;left:var(--pad);top:50%;transform:translateY(-50%);max-width:8.4em;font-weight:300;font-size:var(--fs-d4);line-height:var(--lh-d4);letter-spacing:-.045em;color:var(--bone);mix-blend-mode:difference}
+.sf-t .mono{display:block;margin-bottom:24px}
+.sf-hud{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
+.sf-hud b{font-size:var(--fs-h1);color:var(--red)}
+.sf-hud span{color:var(--bone-2)}
+.sf-c{position:absolute;right:var(--pad);top:104px;color:var(--bone-2);text-align:right}
+
+/* work: the production side */
+.work{position:relative;padding-block:var(--sec) var(--sec-s);--edge:max(var(--pad), calc((100% - var(--wrap)) / 2 + var(--pad)))}
+.work-top{margin-top:var(--blk);align-items:end;row-gap:24px}
+.work-top .lead{color:var(--dim)}
+.idx{margin:var(--blk-l) var(--edge) 0;border-bottom:1px solid var(--lp)}
+.row{border-top:1px solid var(--lp)}
+.row-a{position:relative;display:grid;grid-template-columns:72px minmax(0,1fr) auto;align-items:center;column-gap:var(--gut);padding:24px 0}
+.r-n{align-self:start;padding-top:24px;color:var(--pm)}
+.r-name{position:relative;display:block;width:fit-content;font-weight:300;font-size:var(--fs-d1);line-height:var(--lh-d1);letter-spacing:-.05em;white-space:nowrap;transition:font-stretch .9s var(--e-out),translate .9s var(--e-out)}
+.rn-o{display:block;color:rgba(12,12,11,.16)}
+.rn-s{position:absolute;inset:0;color:var(--ink);-webkit-mask-image:linear-gradient(156.4deg,transparent var(--w),#000 var(--w));mask-image:linear-gradient(156.4deg,transparent var(--w),#000 var(--w));transition:--w .95s var(--e-out)}
+.row-a:hover .rn-s,.row-a:focus-visible .rn-s,.row-a.is-on .rn-s{--w:0%}
+.row-a:hover .r-name,.row-a:focus-visible .r-name{font-stretch:112%;translate:24px 0}
+.row-a:hover .r-meta,.row-a:focus-visible .r-meta,.row-a.is-on .r-meta{color:var(--ink)}
+.r-meta{display:flex;flex-direction:column;align-items:flex-end;gap:8px;text-align:right;color:var(--pm);transition:color .6s var(--e-out)}
+.r-d{font-size:var(--fs-body);line-height:var(--lh-body);letter-spacing:-.01em;max-width:17em}
+.r-go{display:inline-flex;align-items:center;gap:8px}
+.r-go .ico{width:12px;height:12px}
+.work-all{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-top:var(--blk);padding-inline:var(--edge)}
+.pv{position:absolute;left:0;top:0;z-index:5;opacity:0;transition:opacity .4s var(--e-out);width:560px;aspect-ratio:16/10;overflow:hidden;background:var(--ink-2);pointer-events:none;border-radius:var(--r-m);transform:translate3d(900px,620px,0) translate(-50%,-50%);will-change:transform;box-shadow:0 0 0 1px rgba(12,12,11,.12),0 32px 64px -32px rgba(12,12,11,.45)}
+.pv .sm{position:absolute;inset:0;opacity:0;transform:scale(1.08);transition:opacity .5s var(--e-out),transform .9s var(--e-out)}
+.work:has(.row-a:hover) .pv,.work:has(.row-a:focus-visible) .pv{opacity:1}
+.work:has(.r0 .row-a:hover) .pv .i0,.work:has(.r1 .row-a:hover) .pv .i1,.work:has(.r2 .row-a:hover) .pv .i2,.work:has(.r3 .row-a:hover) .pv .i3,.work:has(.r4 .row-a:hover) .pv .i4,
+.work:not(:has(.row-a:hover)):has(.r0 .row-a:focus-visible) .pv .i0,.work:not(:has(.row-a:hover)):has(.r1 .row-a:focus-visible) .pv .i1,.work:not(:has(.row-a:hover)):has(.r2 .row-a:focus-visible) .pv .i2,.work:not(:has(.row-a:hover)):has(.r3 .row-a:focus-visible) .pv .i3,.work:not(:has(.row-a:hover)):has(.r4 .row-a:focus-visible) .pv .i4{opacity:1;transform:none}
+/* touch and narrow screens: every row carries its own preview, swept by scroll */
+.r-pv{display:none}
+@media (hover:none),(max-width:900px){
+.pv{display:none}
+.r-pv{display:block;grid-column:1/-1;order:3;width:100%;aspect-ratio:16/10;margin-top:8px;border-radius:var(--r-s);box-shadow:0 0 0 1px rgba(12,12,11,.1)}
+}
+
+/* the mark, constructed: lines first, then the solid */
+@property --ci{syntax:"<integer>";inherits:false;initial-value:4}
+.con-wrap{position:relative}
+.con{position:relative;height:900px;overflow:hidden;background:#EFEEEA;color:var(--ink);--cp:.8;--cn:4;container-type:size}
+.con-short .con{--cn:2}
+.con-svg{position:absolute;inset:0;width:100%;height:100%}
+.cl{fill:none;stroke:rgba(12,12,11,.24);stroke-width:.8;vector-effect:non-scaling-stroke;stroke-dasharray:1;stroke-dashoffset:calc(1 - clamp(0, (var(--cp) - var(--a)) / var(--b), 1));opacity:calc(1 - clamp(0, (var(--cp) - .78) * 3, .55))}
+.cl-o{stroke:rgba(12,12,11,.85);stroke-width:1.2}
+.cl-g{stroke:rgba(12,12,11,.14)}
+.con-fill{fill:var(--ink);opacity:clamp(0, (var(--cp) - .72) * 5, 1)}
+.con-dot{fill:var(--red);opacity:clamp(0, (var(--cp) - .02) * 10, 1)}
+.cc{position:absolute;width:448px;opacity:calc(clamp(0, (var(--cp) - var(--a)) * 18, 1) * clamp(0, (var(--b) - var(--cp)) * 18, 1))}
+.cc h3{font-weight:400;font-size:var(--fs-h1);line-height:var(--lh-h1);letter-spacing:-.035em}
+.cc p{margin-top:24px;max-width:24em;font-size:var(--fs-lead);line-height:var(--lh-lead);letter-spacing:-.01em}
+.cc-tl{left:var(--pad);top:120px}
+.cc-br{right:var(--pad);bottom:80px;text-align:right}
+.cc-br p{margin-left:auto}
+.cc-bl{left:var(--pad);bottom:80px}
+.cc-tr{right:var(--pad);top:120px;text-align:right}
+.cc-tr p{margin-left:auto}
+/* on home the first caption is the section's heading: it stays while the mark is built, and the second joins it */
+@media (min-width:901px){.con-short .cc-tl{opacity:clamp(0, (var(--cp) - var(--a)) * 18, 1)}}
+.con-bl{position:absolute;left:var(--pad);bottom:24px}
+.con-br{position:absolute;right:var(--pad);bottom:24px;display:flex;gap:16px;align-items:center}
+.con-lbl{position:relative;width:96px;height:20px;text-align:right}
+.con-lbl span{position:absolute;right:0;top:0;opacity:calc(clamp(0, (var(--cp) - var(--a)) * 18, 1) * clamp(0, (var(--b) - var(--cp)) * 18, 1))}
+.con-n{--ci:clamp(1, var(--cp) * var(--cn) + .5, var(--cn));counter-reset:ci var(--ci)}
+.con-n::before{content:counter(ci,decimal-leading-zero)}
+
+/* both sides: design and production split by the slash */
+/* the section arrives on the bone of the mark above, then eases to ink once it fills the screen (--bk 0 → 1). Text flips quickly at the midpoint so it never sinks into the grey. */
+.both{position:relative;padding-block:var(--sec);--bk:1;--bkp:calc(var(--bk) * 100%);--tkp:calc(clamp(0, (var(--bk) - .45) * 10, 1) * 100%);background:color-mix(in oklab,#EFEEEA,var(--ink) var(--bkp));color:color-mix(in oklab,var(--ink),var(--bone) var(--tkp))}
+.both-top{margin-top:var(--blk);align-items:end;row-gap:24px}
+.both-top .lead{color:color-mix(in oklab,var(--pm),var(--bone-2) var(--tkp))}
+.both .sec-head{border-color:color-mix(in oklab,var(--lp),var(--line) var(--tkp))}
+.both .sec-head .mono{color:color-mix(in oklab,var(--pm),var(--mute) var(--tkp))}
+.bs-pin{position:relative;height:250svh;margin-top:var(--blk)}
+.bs-stage{position:sticky;top:0;height:100svh;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:20px;padding-top:calc(var(--nav-h,72px) * .6)}
+.bs{position:relative;width:min(100%,calc((100svh - 190px) * 1.6));aspect-ratio:16/10;container-type:size;overflow:hidden;border-radius:var(--r-m);background:#121211;box-shadow:0 0 0 1px var(--line),0 64px 128px -40px rgba(0,0,0,.8);--s:var(--sa)}
+.bs:hover{--s:var(--sp,.5)}
+.bs-prod,.bs-des{position:absolute;inset:0}
+.bs-prod{z-index:2;clip-path:polygon(0 0,100% 0,100% calc(var(--s) * (100cqh + 43.69cqw) - 43.69cqw),0 calc(var(--s) * (100cqh + 43.69cqw)))}
+.bs-prod img{width:100%;height:100%;object-fit:cover}
+.bs-des{background:#121315}
+/* the drawing is ink on bone; inverted, it reads as a light trace on the dark canvas, exactly over the live pixels */
+.bs-draw{object-fit:cover;filter:invert(1) contrast(1.1);opacity:.6}
+.bs-des .wf-sel{position:absolute;z-index:1}
+.bs-des .wf-sel-s{border-style:dashed}
+.bs-des .wf-pill{left:-1px;top:auto;bottom:calc(100% + 6px)}
+.bs-hud{display:flex;align-items:center;gap:16px;width:min(100%,calc((100svh - 190px) * 1.6));font-size:var(--fs-sm);color:color-mix(in oklab,var(--pm),var(--mute) var(--tkp))}
+.bs-hud>span:not(.bs-bar){display:flex;flex-direction:column;gap:4px;white-space:nowrap}
+.bs-hud>span:last-child{align-items:flex-end}
+.bs-hud small{display:flex;align-items:center;gap:6px;font-size:11px}
+.bs-hud small i{width:6px;height:6px;border-radius:50%;background:#2fbf71}
+.bs-cap{display:none}
+.bs-bar{position:relative;flex:1;height:1px;background:color-mix(in oklab,var(--lp),var(--line-2) var(--tkp))}
+.bs-bar i{position:absolute;left:0;top:-1px;height:3px;width:calc(var(--sa) * 100%);background:var(--red);border-radius:2px}
+.wf-sel{border:1px solid var(--red)}
+.wf-sel i{position:absolute;width:8px;height:8px;background:var(--bone);border:1px solid var(--red)}
+.wf-sel i:nth-child(1){left:-4px;top:-4px}.wf-sel i:nth-child(2){right:-4px;top:-4px}.wf-sel i:nth-child(3){left:-4px;bottom:-4px}.wf-sel i:nth-child(4){right:-4px;bottom:-4px}
+.wf-pill{position:absolute;padding:2px 8px;border-radius:4px;background:var(--red);color:var(--ink);font-weight:500;font-size:max(8px,.7cqw);white-space:nowrap}
+.wf-cols{position:absolute;left:3.33%;right:3.33%;top:0;bottom:0;display:grid;grid-template-columns:repeat(12,1fr);column-gap:1.67%}
+.wf-cols span{background:rgba(255,79,43,.055);border-inline:1px solid rgba(255,79,43,.16)}
+.wf-rl{position:absolute;border-left:1px solid var(--red)}
+.wf-rl::before,.wf-rl::after{content:"";position:absolute;left:-4px;width:8px;height:1px;background:var(--red)}
+.wf-rl::before{top:0}.wf-rl::after{bottom:0}
+.wf-rl b{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-weight:500;font-size:max(9px,.9cqw);color:var(--red)}
+.bs-line{position:absolute;left:50%;top:0;z-index:4;width:130cqw;height:2px;background:var(--red);transform:translate(-50%,calc(var(--s) * (100cqh + 43.69cqw) - 21.85cqw - 50%)) rotate(-23.6deg);box-shadow:0 0 16px rgba(255,79,43,.6)}
+.bs-h{position:absolute;left:14%;top:0;z-index:5;width:64px;height:64px;border-radius:50%;background:var(--red);color:var(--ink);display:flex;align-items:center;justify-content:center;transform:translate(-50%,calc(var(--s) * (100cqh + 43.69cqw) - 21.85cqw + 15.73cqw - 50%));box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.bs-h .dpm{height:32px;width:auto;aspect-ratio:692/1024}
+
+/* services index: design and production */
+.both-foot{display:grid;grid-template-columns:1fr 1fr;margin-top:var(--blk-l);border-top:1px solid var(--line-2)}
+.dp-col{padding-top:24px}
+.dp-d{padding-right:var(--gut);border-right:1px solid var(--line)}
+.dp-p{padding-left:var(--gut);text-align:right}
+.dp-col h3{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:var(--blk-s);font-weight:400;font-size:var(--fs-lead);line-height:var(--lh-lead);letter-spacing:-.01em}
+.dp-col h3 .mono{color:color-mix(in oklab,var(--pm),var(--mute) var(--tkp))}
+.dp-col ul{display:flex;flex-direction:column}
+.dp-col li{display:flex;align-items:baseline;gap:16px;padding-block:4px;font-weight:300;font-size:var(--fs-h2);line-height:var(--lh-h2);letter-spacing:-.04em;color:color-mix(in oklab,var(--ink),rgba(236,234,228,.9) var(--tkp));transition:color .5s var(--e-out),translate .6s var(--e-out),font-stretch .6s var(--e-out)}
+.dp-p li{flex-direction:row-reverse}
+.dp-col li .mono{min-width:32px;color:color-mix(in oklab,var(--pm),var(--mute) var(--tkp));transition:color .5s}
+.dp-col ul:hover li{color:rgba(236,234,228,.22)}
+.dp-col ul:hover li:hover{color:var(--bone);font-stretch:112%}
+.dp-d ul:hover li:hover{translate:12px 0}
+.dp-p ul:hover li:hover{translate:-12px 0}
+.dp-col li:hover .mono{color:var(--red)}
+.both-link{margin-top:40px}
+
+/* proof */
+.proof{position:relative;padding-block:var(--sec)}
+.fill{background-image:linear-gradient(var(--ink),var(--ink)),linear-gradient(rgba(12,12,11,.16),rgba(12,12,11,.16));background-repeat:no-repeat;background-size:100% 100%,100% 100%}
+@supports ((background-clip:text) or (-webkit-background-clip:text)){.fill{-webkit-background-clip:text;background-clip:text;color:transparent}}
+/* quotes: one client at a time while pinned; the phrase rises word by word, the quote lights up as it is read,
+   and the next client cuts in over it on the slash. --in, --qr and --qb come from Quotes; all default to done */
+.qs-pin{position:relative;height:360svh}
+.qs-stage{position:sticky;top:0;height:100svh;display:flex;flex-direction:column;padding-top:calc(var(--nav-h) + 8px);padding-bottom:40px}
+.qs-deck{position:relative;flex:1;margin-block:24px}
+.qv{--in:1;--qr:1;position:absolute;inset:0;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gut);align-items:center;background:var(--bone);clip-path:polygon(0 0,calc(var(--in) * 160%) 0,calc(var(--in) * 160% - 60%) 100%,0 100%)}
+.qv-p{grid-column:1/8;align-self:center;font-weight:300;font-size:var(--fs-d1);line-height:var(--lh-d1);letter-spacing:-.05em;font-stretch:112%}
+.qv-mk{display:block;height:.5em;margin-bottom:.1em;color:var(--red);font-size:1.4em;line-height:1;letter-spacing:0}
+.qv-w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.08em;margin-bottom:-.08em;padding-right:.08em;margin-right:-.08em}
+.qv-w>span{display:inline-block;translate:0 calc((1 - clamp(0, var(--in) * 1.8 - var(--qi) * .22, 1)) * 105%)}
+.qv-r{grid-column:9/13;display:flex;flex-direction:column;gap:32px}
+.qv-q{font-size:22px;line-height:32px;letter-spacing:-.015em}
+.qv-q span{opacity:calc(.16 + .84 * clamp(0, var(--qr) * (var(--qn) + 2) - var(--qi), 1));transition:opacity .2s}
+.qv-cap{display:flex;align-items:center;gap:16px;padding-top:24px;border-top:1px solid var(--lp)}
+.qv-cap>span:last-child{display:flex;flex-direction:column;gap:4px}
+.qv-cap b{font-weight:400;font-size:var(--fs-h4);line-height:var(--lh-h4);letter-spacing:-.02em}
+.qv-av{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--ink);color:var(--bone);font-size:20px;font-stretch:112%}
+.qs-rail{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gut)}
+.qs-rail button{--qb:0;position:relative;display:flex;align-items:baseline;gap:16px;padding:16px 0 0;background:none;border:0;font:inherit;color:var(--pm);text-align:left;cursor:pointer;transition:color .4s}
+.qs-rail button>span:nth-child(2){font-size:var(--fs-h4);line-height:var(--lh-h4);letter-spacing:-.02em}
+.qs-rail button.on,.qs-rail button:hover{color:var(--ink)}
+.qs-rail i{position:absolute;left:0;right:0;top:0;height:1px;background:var(--lp)}
+.qs-rail i::after{content:"";position:absolute;inset:-1px auto -1px 0;width:calc(var(--qb) * 100%);background:var(--red)}
+@media (max-width:900px){
+.qs-pin{height:330svh}
+.qs-stage{padding-bottom:24px}
+.qv{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:32px}
+.qv-r{gap:24px}
+.qv-q{font-size:17px;line-height:26px}
+.qs-rail{gap:12px}
+.qs-rail button{flex-direction:column;gap:4px;padding-top:12px}
+.qs-rail button>span:nth-child(2){font-size:var(--fs-body);line-height:20px}
+}
+@media (prefers-reduced-motion:reduce){
+.qs-pin{height:auto}
+.qs-stage{position:static;height:auto}
+.qs-deck{display:flex;flex-direction:column;gap:var(--blk)}
+.qv{position:relative;clip-path:none}
+.qs-rail{display:none}
+}
+
+/* stats: a giant index that counts up and fills from outline to ink */
+@property --n{syntax:"<integer>";inherits:true;initial-value:0}
+.stx{margin-top:var(--blk-l);border-bottom:1px solid var(--lp)}
+.sx{--n:var(--to);display:grid;grid-template-columns:minmax(0,1fr) minmax(224px,auto);align-items:end;column-gap:var(--gut);padding-block:16px 24px;border-top:1px solid var(--lp)}
+.sx-v{position:relative;display:block;width:fit-content;font-weight:300;font-size:var(--fs-giga);line-height:var(--lh-giga);letter-spacing:-.06em;font-variant-numeric:tabular-nums;white-space:nowrap;padding-right:.08em;margin-right:-.08em}
+.sx:nth-child(even) .sx-v{margin-left:auto;grid-column:1}
+.sx-n{font-style:normal;counter-reset:n var(--n)}
+.sx-n::before{content:counter(n)}
+.sx-o{display:block;color:rgba(12,12,11,.14)}
+.sx-s{position:absolute;inset:0;color:var(--ink);-webkit-mask-image:linear-gradient(156.4deg,transparent var(--w),#000 var(--w));mask-image:linear-gradient(156.4deg,transparent var(--w),#000 var(--w));--w:0%}
+.sx-l{display:flex;flex-direction:column;gap:8px;padding-bottom:16px;text-align:right}
+.sx-l b{font-weight:400;font-size:var(--fs-h3);line-height:var(--lh-h3);letter-spacing:-.025em}
+.stx-s{margin-top:var(--blk-s)}
+.stx-s .sx{grid-template-columns:minmax(0,1fr) minmax(280px,440px)}
+.stx-s .sx-v{font-size:var(--fs-mega);line-height:var(--lh-mega)}
+.stx-s .sx:nth-child(even) .sx-v{margin-left:0;grid-column:auto}
+.stx-s .sx-n::before{content:counter(n,decimal-leading-zero)}
+.stx-s .sx-l{text-align:left}
+
+/* motion */
+@media (prefers-reduced-motion:no-preference){
+.site{--d0:.2s}
+.site.has-intro{--d0:2.75s}
+.has-intro:not(.ld-go) *{animation-play-state:paused!important}
+/* seen it in the last day: no loader, and the hero comes straight in */
+.intro-seen .ld,.ld-stuck .ld{display:none!important}
+.ld-stuck .site.has-intro{--d0:0s}
+.ld-stuck .has-intro:not(.ld-go) *{animation-play-state:running!important}
+.intro-seen .site.has-intro{--d0:0s}
+.has-intro .ld{animation:ld-out .01s linear 3.15s both}
+.has-intro .ld-bg{animation:ld-bg .5s ease 2.55s both}
+.has-intro .ld-b{stroke-dasharray:100;animation:ld-draw .6s var(--e-io) .05s both,ld-fill .3s ease 1.92s both}
+.has-intro .ld-m{animation:ld-turn 1.4s var(--e-io) .5s both,ld-fill .3s ease 1.92s both,ld-show .01s linear .5s both}
+.has-intro .ld-gh path{animation:ld-gh .2s ease both,ld-ghx .3s ease 1.92s forwards}
+.has-intro .ld-gh path:nth-child(1){animation-delay:1.06s,1.92s}
+.has-intro .ld-gh path:nth-child(2){animation-delay:1.15s,1.92s}
+.has-intro .ld-gh path:nth-child(3){animation-delay:1.2s,1.92s}
+.has-intro .ld-gh path:nth-child(4){animation-delay:1.25s,1.92s}
+.has-intro .ld-gh path:nth-child(5){animation-delay:1.34s,1.92s}
+.has-intro .ld-num{animation:ld-count 1.4s var(--e-io) .5s both}
+.has-intro .ld-mk{animation:ld-grow .8s var(--e-io) 2.2s both,ld-fade .25s ease 2.85s both}
+.has-intro .ld-dg{animation:ld-pd .75s var(--e-io) 2.25s both}
+.has-intro .ld-pg{animation:ld-pp .75s var(--e-io) 2.25s both}
+.has-intro .ld-deg,.has-intro .ld-c{animation:ld-fade .35s ease 2.2s both}
+.has-intro .hu-top,.has-intro .hu-bl,.has-intro .hu-br,.has-intro .hud,.has-intro .nav-in,.has-intro .nav-menu{animation:fade-up 1s var(--e-out) both;animation-delay:calc(var(--d0) + .25s)}
+.has-intro .hl{animation:hl-in 1.3s var(--e-out) both;animation-delay:var(--d0)}
+.has-intro .hu-p .hl{animation-delay:calc(var(--d0) + .12s)}
+@keyframes ld-out{to{visibility:hidden}}
+@keyframes ld-bg{to{opacity:0}}
+@keyframes ld-draw{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+@keyframes ld-fill{to{fill-opacity:1;stroke-opacity:0}}
+@keyframes ld-turn{from{rotate:0deg}to{rotate:180deg}}
+@keyframes ld-show{from{opacity:0}to{opacity:1}}
+@keyframes ld-gh{from{opacity:0}to{opacity:.35}}
+@keyframes ld-ghx{to{opacity:0}}
+@keyframes ld-count{from{--ld:0}to{--ld:180}}
+@keyframes ld-grow{to{transform:translate(-50%,-50%) scale(5.4)}}
+@keyframes ld-pd{to{translate:-240px -552px}}
+@keyframes ld-pp{to{translate:240px 552px}}
+@keyframes ld-fade{to{opacity:0}}
+@keyframes fade{from{opacity:0}}
+@keyframes fade-up{from{opacity:0;transform:translateY(16px)}}
+@keyframes hl-in{from{opacity:0;transform:translateY(40%);font-stretch:62%}}
+
+.hero-wrap{height:620svh}
+/* the hero fills the screen that is showing right now: --vh is window.innerHeight (set by Hero), dvh and svh are fallbacks.
+   Chrome on iOS resolved 100svh shorter than the visible area, so the hero stopped short of the toolbar and its type piled up at min-height */
+.hero{position:sticky;top:0;height:100svh;height:100dvh;min-height:560px}
+.hero[style*="--vh"]{height:var(--vh)}
+.con-wrap{height:420svh}
+.con-short{height:180svh}
+.con{position:sticky;top:0;height:100svh;min-height:560px;--cp:0}
+.story{display:none}
+.chs{display:block}
+.chs-scrim{display:block;opacity:calc(clamp(0, (var(--p) - .27) * 12, 1) * clamp(0, (.89 - var(--p)) * 12, 1))}
+.gl-fail .chs-scrim{display:none}
+.chp-1{opacity:calc(clamp(0, (var(--p) - .275) * 25, 1) * clamp(0, (.40 - var(--p)) * 25, 1));transform:translateY(calc(-50% + (var(--p) - .34) * -360px))}
+.chp-2{opacity:calc(clamp(0, (var(--p) - .425) * 25, 1) * clamp(0, (.55 - var(--p)) * 25, 1));transform:translateY(calc(-50% + (var(--p) - .49) * -360px))}
+.chp-3{opacity:calc(clamp(0, (var(--p) - .575) * 25, 1) * clamp(0, (.70 - var(--p)) * 25, 1));transform:translateY(calc(-50% + (var(--p) - .64) * -360px))}
+.chp-4{opacity:calc(clamp(0, (var(--p) - .725) * 25, 1) * clamp(0, (.885 - var(--p)) * 25, 1));transform:translateY(calc(-50% + (var(--p) - .80) * -360px))}
+.hud-cue{opacity:calc(1 - clamp(0, (var(--p) - .02) * 14, 1))}
+.hud-ph-d{opacity:calc(clamp(0, (var(--p) - .27) * 30, 1) * clamp(0, (.605 - var(--p)) * 30, 1))}
+.hud-ph-p{opacity:calc(clamp(0, (var(--p) - .605) * 30, 1) * clamp(0, (.93 - var(--p)) * 30, 1))}
+.hud{opacity:calc(1 - clamp(0, (var(--p) - .93) * 20, 1))}
+.flash{opacity:clamp(0, (var(--p) - .9) * 25, 1)}
+/* the work section rides up over the last 6% of the dive, so it enters the moment the flash reaches bone (p .94) */
+.hero-wrap{margin-bottom:calc((620svh - max(100svh, 560px)) * -.06)}
+/* the flash is already the gap above it */
+.hero-wrap~.work{padding-top:var(--blk-s)}
+.row-a{transform:skewY(calc(var(--skew, 0) * 1deg))}
+/* no WebGL2, a low-end device or a slow frame rate: the hero stays a still and the dive unrolls as frames */
+/* phones: a flick travels about a screen, so 620svh was six swipes through four lines; 440svh keeps every chapter on screen for a beat */
+@media (max-width:900px){
+.hero-wrap{height:440svh;margin-bottom:calc((440svh - max(100svh, 560px)) * -.06)}
+}
+.gl-fail .hero-wrap{height:auto;margin-bottom:0}
+.gl-fail .hero-wrap~.work{padding-top:var(--sec)}
+.gl-fail .hero{position:relative;height:100svh;height:100dvh}
+.gl-fail .hero[style*="--vh"]{height:var(--vh)}
+.gl-fail .story{display:block}
+.gl-fail .chs,.gl-fail .hud{display:none}
+}
+
+@media (max-width:1359px){
+.pv{width:480px}
+.cc{width:384px}
+}
+@media (max-width:1023px){
+.pv{width:400px}
+.cc{width:320px}
+.row-a{padding-block:16px}
+}
+/* phone */
+@media (max-width:900px){
+.hu-top{top:80px}
+/* short screens: the headline never climbs into the meta row above it, and "I build it." stays clear of the button below */
+.hu-d{top:max(16%,120px)}
+.hu-p{top:min(72%,calc(100% - 104px - var(--lh-d3)))}
+.hero{min-height:480px}
+.hu-bl{display:none}
+.hu-br{left:var(--pad);right:var(--pad);bottom:24px}
+.hu-br .btn{width:100%;justify-content:space-between}
+}
+/* tablets: a full-width pill reads as a form button; keep the phone's layout but let it size to its label */
+@media (min-width:601px) and (max-width:900px){
+.hu-br{left:auto}
+.hu-br .btn{width:auto;gap:24px}
+}
+@media (max-width:900px){
+.hud{display:none}
+.chp,.sf-t{max-width:none;right:var(--pad)}
+/* phones: the chapter lines span the screen and sit right on the mark, so the scrim read as a grey smudge over it, and
+   on the white solids it turned the difference-blended text mid-grey on mid-grey; without it the text inverts cleanly */
+.chs-scrim{display:none}
+.row-a{grid-template-columns:40px minmax(0,1fr);row-gap:8px}
+.r-n{padding-top:12px}
+.r-meta{grid-column:2;align-items:flex-start;text-align:left}
+.r-name{white-space:normal}
+.pv{display:none}
+.work-all{flex-direction:column;align-items:flex-start}
+/* phones: the mark fills the space above the captions instead of sitting under them. Captions share one grid cell,
+   so the drawing keeps the same size as they swap; the type steps down to h2 and body so the longest one fits on a 375 screen */
+.con{display:grid;grid-template-rows:minmax(0,1fr) auto;row-gap:24px;padding:calc(var(--nav-h) + 8px) var(--pad) 68px}
+.con-svg{position:relative;inset:auto;grid-area:1/1;width:calc(100% + var(--pad) * 2);height:calc(100% + var(--nav-h) + 8px);margin:calc(-8px - var(--nav-h)) calc(var(--pad) * -1) 0;-webkit-mask-image:linear-gradient(#000 80%,transparent);mask-image:linear-gradient(#000 80%,transparent)}
+.cc{position:relative;inset:auto;grid-area:2/1;align-self:end;width:auto;transform:none}
+.cc h3{font-size:var(--fs-h2);line-height:var(--lh-h2);letter-spacing:-.03em}
+.cc p{margin-top:12px;max-width:none;font-size:var(--fs-body);line-height:var(--lh-body)}
+.cc-br,.cc-tr{text-align:left}
+.bs-h{width:40px;height:40px}
+.bs-h .dpm{height:24px}
+.bs-pin{height:190svh}
+.both-top{position:absolute;width:1px;height:1px;margin:0;overflow:hidden;clip-path:inset(50%)}
+.bs-cap{display:flex;flex-direction:column;gap:16px;width:100%;margin-bottom:8px}
+.bs-cap .h-xl{font-size:var(--fs-h1);line-height:var(--lh-h1)}
+.bs-cap .lead{color:color-mix(in oklab,var(--pm),var(--bone-2) var(--tkp))}
+.bs,.bs-hud{width:min(100%,max(240px,calc((100svh - 420px) * 1.6)))}
+.bs-des .wf-pill,.wf-rl{display:none}
+.bs-hud{gap:10px}
+.sx{grid-template-columns:1fr}
+.both-foot{grid-template-columns:1fr}
+.dp-d{border-right:0;padding-right:0}
+.dp-p{padding-left:0;text-align:left;margin-top:40px}
+.dp-p li{flex-direction:row}
+.dp-p h3{flex-direction:row-reverse;justify-content:flex-end}
+.sx:nth-child(even) .sx-v{margin-left:0}
+.sx-l{text-align:left;padding-bottom:0;margin-top:8px}
+.stx-s .sx{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){.has-intro .ld{display:none}}
+/* portrait screens: the landscape still would crop the mark past the edges, so fit it and scale it back up */
+@media (max-aspect-ratio:3/4){.gl-still img{object-fit:contain;transform:scale(1.8)}}
+button.row-a,button.wkf-s{width:100%;background:none;border:0;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+button.row-a{padding:24px 0}
+.wkf-s .fl-shot{position:relative;display:block;aspect-ratio:16/10;border-radius:var(--r-m);overflow:hidden;box-shadow:0 0 0 1px var(--lp),0 32px 64px -40px rgba(12,12,11,.5)}
+button.lnk{background:none;border:0;border-bottom:1px solid var(--line-2);padding:0;font:inherit;color:inherit;cursor:pointer}
+
